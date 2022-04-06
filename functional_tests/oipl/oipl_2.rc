@@ -1,0 +1,8 @@
+[MASTER]
+load-plugins=trailing_commas,
+
+[testoptions]
+requires=trailing_commas
+
+[trailing_commas]
+one-item-per-line=y

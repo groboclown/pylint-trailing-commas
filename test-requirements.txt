@@ -1,0 +1,2 @@
+PyLint >= 2.13
+pytest >= 7.1
