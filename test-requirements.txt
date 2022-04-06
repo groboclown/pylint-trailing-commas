@@ -1,2 +1,4 @@
 PyLint >= 2.13
-pytest >= 7.1
+
+# pytest 7.1 does not work on Python 3.6
+pytest >= 7.0
