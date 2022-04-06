@@ -1,12 +1,15 @@
 name: trailing-commas-build
 on: [push, pull_request]
 jobs:
-  build-py38-linux:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: [ '2.7', '3.x', 'pypy-2.7', 'pypy-3.7', 'pypy-3.8' ]
+        python-version:
+          - '3.x'
+          - 'pypy-3.8'
+          # May eventually want to include '2.7', but the requirements cause it to fail.
         # exclude:
         #   - os: macos-latest
         #     python-version: '3.8'
@@ -14,12 +17,11 @@ jobs:
         #     python-version: '3.6'
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v3
+      - uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
-      - name: Setup
+      - name: Load Dependencies
         run: python -m pip install -r test-requirements.txt
       - name: Build
         run: ./bin/build.sh
