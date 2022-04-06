@@ -21,7 +21,7 @@ from pylint.testutils.functional import (
 
 sys.path.append(str(Path(__file__).parent.parent.resolve()))
 
-FUNCTIONAL_DIR = Path(__file__).parent.parent.resolve() / "functional_tests"
+FUNCTIONAL_DIR = Path(__file__).parent.resolve() / '..' / "functional_tests"
 
 TESTS = [
     t
