@@ -8,10 +8,10 @@
 # type: ignore
 
 """
-trailing_commas v1.3
+trailing_commas v1.4
 
 An extension to PyLint.  It enforces a coding style similar to Golang in
-regards to multi-line list expressions.
+regard to multi-line list expressions.
 
 To add it to your run of PyLint, add the file's directory to your
 `PYTHONPATH` environment variable, and run:
@@ -221,10 +221,19 @@ class TokenListWrapper:
 
 class BracketContext:  # pylint: disable=R0902
     """Context within a bracket"""
+    __slots__ = (
+        '_starting_token_line_no', '_current_line_no', '_current_token', '_current_line_items',
+        '_is_paren', '_previous_was_comma', '_previous_was_string', '_item_count', '_config',
+        '_messages', '_expression_type',
+    )
+
     def __init__(self, starting_token: Token, config) -> None:
         self._starting_token_line_no = starting_token.start_line_no
         self._current_line_no = starting_token.start_line_no
+
+        # all the bits of text that make up the current item between commas
         self._current_token: List[Token] = []
+
         self._current_line_items: List[Sequence[Token]] = []
         self._is_paren = starting_token.token_text == '('
         self._previous_was_comma = False
@@ -252,8 +261,11 @@ class BracketContext:  # pylint: disable=R0902
             # This is a function call, so it's parsed as though it's a tuple.
             # It can't be a list constructor.
             self._expression_type = 'tuple'
-        # else:
-        #     print(f"Found list start, not if or elif or tuple, {prev} / {starting_token}")
+        else:
+            BracketContext._debug(
+                "Found list start, not if or elif or tuple, {prev} / {starting_token}",
+                prev=prev, starting_token=starting_token,
+            )
 
     def started_sub_bracket(self, token: Token) -> List[Message]:
         """Start of a sub-bracket within this bracket."""
@@ -282,13 +294,19 @@ class BracketContext:  # pylint: disable=R0902
         # if the separator is on a different line than the last token, then that's
         # a problem.
         if token.start_line_no != self._current_line_no:
-            if len(self._current_token) > 0:
+            if self._current_token:
                 # This indicates that the previous token was most likely a
                 # multi-line string.
                 if self._current_token[-1].end_line_no == token.start_line_no:
                     # Turns out that the separator and multi-line string are on the same line.
                     self._previous_was_comma = True
                     self._previous_was_string = False
+                    self._current_line_items.append(self._current_token)
+                    self._item_count += 1
+                    BracketContext._debug(
+                        "(A0) string item (now {count}) with {token}",
+                        count=self._item_count, token=token,
+                    )
                     return []
                 # This shouldn't happen.
                 raise Exception(
@@ -301,6 +319,14 @@ class BracketContext:  # pylint: disable=R0902
         if self._current_token:
             self._current_line_items.append(self._current_token)
             self._item_count += 1
+            BracketContext._debug(
+                "(A1) new item (now {count}) with {token}", count=self._item_count, token=token,
+            )
+        else:
+            BracketContext._debug(
+                "(A2) separator without token (now {count}) with {token}",
+                count=self._item_count, token=token,
+            )
         self._current_token = []
 
         self._previous_was_comma = True
@@ -315,12 +341,15 @@ class BracketContext:  # pylint: disable=R0902
             self._expression_type = 'for'
 
         self._current_token.append(token)
-        if token.token_type == tokenize.STRING and self._previous_was_string:
-            # else this is a "a "  " b" style string continuation, in which the two tokens act
-            # like a single string.
-            pass
-        else:
-            self._item_count += 1
+        # if token.token_type == tokenize.STRING and self._previous_was_string:
+        #     # else this is a "a "  " b" style string continuation, in which the two tokens act
+        #     # like a single string.
+        #     pass
+        # else:
+        #     self._item_count += 1
+        #     BracketContext._debug(
+        #         "(B) new item (now {count}) with {token}", count=self._item_count, token=token,
+        #     )
 
         self._previous_was_comma = False
         self._previous_was_string = token.token_type == tokenize.STRING
@@ -354,7 +383,7 @@ class BracketContext:  # pylint: disable=R0902
         next_item = token.next
         if next_item:
             self._current_line_no = next_item.start_line_no
-        self._current_token = []
+        # self._current_token = []
         self._current_line_items = []
 
         return []
@@ -366,8 +395,10 @@ class BracketContext:  # pylint: disable=R0902
             return []
 
         if self._current_token:
-            self._current_line_items.append(self._current_token)
             self._item_count += 1
+            BracketContext._debug(
+                "(C) new item (now {count}) with {token}", count=self._item_count, token=token,
+            )
 
         if self._expression_type == 'if':
             # If the next token after the end is a ':', then this is a parenthetical
@@ -411,9 +442,16 @@ class BracketContext:  # pylint: disable=R0902
                     pass
                 else:
                     self._messages.append(("closing-comma", [], prev.start_line_no))
-                    # print(f"-- {self._item_count} items before ending {token}")
+                    BracketContext._debug(
+                        "{0} items before ending {token}", self._item_count, token=token,
+                    )
 
         return self._messages
+
+    @staticmethod
+    def _debug(_msg, *_args, **_kvargs) -> None:
+        # print("-- " + (_msg.format(*_args, **_kvargs)))
+        pass
 
 
 class TrailingCommaChecker(BaseTokenChecker):
@@ -543,8 +581,6 @@ class TrailingCommaChecker(BaseTokenChecker):
            or end with the closing character, that doesn't end with a comma.
            The exception is a list generator.
         """
-        # print("TRAILING_COMMAS - PROCESSING TOKENS")
-        # print(repr(tokens))
         line_num = 0
         self._open_brace_lines = []
 
