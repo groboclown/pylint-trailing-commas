@@ -8,7 +8,7 @@
 # type: ignore
 
 """
-trailing_commas v1.5
+trailing_commas v1.6
 
 An extension to PyLint.  It enforces a coding style similar to Golang in
 regard to multi-line list expressions.
@@ -224,7 +224,7 @@ class BracketContext:  # pylint: disable=R0902
     __slots__ = (
         '_starting_token_line_no', '_current_line_no', '_current_token', '_current_line_items',
         '_is_paren', '_previous_was_comma', '_previous_was_string', '_item_count', '_config',
-        '_messages', '_expression_type',
+        '_messages', '_expression_type', '_is_index',
     )
 
     def __init__(self, starting_token: Token, config) -> None:
@@ -235,15 +235,17 @@ class BracketContext:  # pylint: disable=R0902
         self._current_token: List[Token] = []
 
         self._current_line_items: List[Sequence[Token]] = []
-        # bandit recognizes this as a possible password.
-        self._is_paren = starting_token.token_text == '('  # nosec
         self._previous_was_comma = False
         self._previous_was_string = False
         self._item_count = 0
         self._config = config
         self._messages: List[Message] = []
 
-        # figure out if this is a tuple, if, or a function call.
+        # bandit recognizes this as a possible password.
+        self._is_paren = starting_token.token_text == '('  # nosec
+
+        # figure out if this is a tuple, if, index, or a function call.
+        self._is_index = False
         self._expression_type = None
         prev = starting_token.prev
         if (
@@ -254,6 +256,13 @@ class BracketContext:  # pylint: disable=R0902
             # if statements might begin with a tuple.  If it only contains a parenthetical
             # expression, then we can ignore it.
             self._expression_type = 'if'
+        elif (
+                prev and
+                prev.token_type == tokenize.NAME and
+                starting_token.token_text == '['  # nosec
+        ):
+            # index, or a type expression, like List[int]
+            self._is_index = True
         elif (
                 prev and
                 prev.token_type == tokenize.NAME and
@@ -441,7 +450,7 @@ class BracketContext:  # pylint: disable=R0902
                 # If the item count is 1, then this is a potential situation of
                 # parenthesis to have a single line wrap.  For now, this does not
                 # enforce the need for a closing comma.
-                if self._item_count <= 1 and self._is_paren:
+                if self._item_count <= 1 and (self._is_paren or self._is_index):
                     pass
                 elif self._item_count > 0:
                     self._messages.append(("closing-comma", [], prev.start_line_no))
