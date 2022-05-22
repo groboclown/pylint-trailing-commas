@@ -1,4 +1,5 @@
-"""Regression test for invoking a function with a multi-line string.  Bad"""
+"""Regression test for multi-line condition, wrapped in parentheses to
+avoid backslash EOL."""
 
 VAL1 = "2"
 VAL2 = "3"

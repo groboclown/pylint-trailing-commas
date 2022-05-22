@@ -8,7 +8,7 @@
 # type: ignore
 
 """
-trailing_commas v1.4
+trailing_commas v1.5
 
 An extension to PyLint.  It enforces a coding style similar to Golang in
 regard to multi-line list expressions.
@@ -440,7 +440,7 @@ class BracketContext:  # pylint: disable=R0902
                 # enforce the need for a closing comma.
                 if self._item_count <= 1 and self._is_paren:
                     pass
-                else:
+                elif self._item_count > 0:
                     self._messages.append(("closing-comma", [], prev.start_line_no))
                     BracketContext._debug(
                         "{0} items before ending {token}", self._item_count, token=token,
