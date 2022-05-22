@@ -235,7 +235,8 @@ class BracketContext:  # pylint: disable=R0902
         self._current_token: List[Token] = []
 
         self._current_line_items: List[Sequence[Token]] = []
-        self._is_paren = starting_token.token_text == '('
+        # bandit recognizes this as a possible password.
+        self._is_paren = starting_token.token_text == '('  # nosec
         self._previous_was_comma = False
         self._previous_was_string = False
         self._item_count = 0
@@ -336,7 +337,8 @@ class BracketContext:  # pylint: disable=R0902
 
     def encountered_token(self, token: Token) -> List[Message]:
         """An item token in the bracket"""
-        if token.token_text == 'for' and self._expression_type is None:
+        # bandit recognizes this as a possible hard-coded password.
+        if token.token_text == 'for' and self._expression_type is None:  # nosec
             # this is most likely a [x for x in y] style list...
             self._expression_type = 'for'
 
@@ -405,7 +407,8 @@ class BracketContext:  # pylint: disable=R0902
             # expression to wrap a multi-line if condition.  These can ignore the
             # trailing comma logic below.  There shouldn't be a newline after the ) before the :.
             next_token = token.next
-            if next_token and next_token.token_text == ':':
+            # bandit sees this as a possible hard-coded password.
+            if next_token and next_token.token_text == ':':  # nosec
                 return self._messages
 
         is_tuple = (
