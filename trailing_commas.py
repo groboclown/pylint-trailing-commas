@@ -81,7 +81,6 @@ from typing import List, Tuple, Sequence, Optional
 import tokenize
 import pylint.lint
 from pylint.checkers import BaseTokenChecker
-from pylint.interfaces import IAstroidChecker, ITokenChecker, IRawChecker
 
 
 def register(linter: pylint.lint.PyLinter) -> None:
@@ -321,7 +320,7 @@ class BracketContext:  # pylint: disable=R0902
                     )
                     return []
                 # This shouldn't happen.
-                raise Exception(
+                raise RuntimeError(
                     f'failure: unexpected token stack {0} on token {1}'.format(
                         self._current_token, token,
                     )
@@ -510,8 +509,6 @@ class TrailingCommaChecker(BaseTokenChecker):
     But here, those parenthesis aren't needed.
     """
 
-    __implements__ = (ITokenChecker, IAstroidChecker, IRawChecker)
-
     name = 'trailing-comma'
     priority = -1
 
@@ -621,7 +618,7 @@ class TrailingCommaChecker(BaseTokenChecker):
         # print(f" - entered bracket on {token}")
         if self._open_brace_lines:
             self._add_messages(self._open_brace_lines[-1].started_sub_bracket(token))
-        self._open_brace_lines.append(BracketContext(token, self.config))
+        self._open_brace_lines.append(BracketContext(token, self.linter.config))
 
     def _exit_bracket(self, token: Token) -> None:
         # print(f" - exited bracket on {token}")
