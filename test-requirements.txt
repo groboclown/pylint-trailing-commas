@@ -1,4 +1,4 @@
-PyLint >= 2.13
+PyLint >= 2.13,<3
 
 # pytest 7.1 does not work on Python 3.6
 pytest >= 7.0

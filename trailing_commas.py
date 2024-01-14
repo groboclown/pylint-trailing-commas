@@ -8,7 +8,9 @@
 # type: ignore
 
 """
-trailing_commas v1.6
+trailing_commas v3.0
+
+(compatible with PyLint 3)
 
 An extension to PyLint.  It enforces a coding style similar to Golang in
 regard to multi-line list expressions.
