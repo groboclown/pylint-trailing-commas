@@ -47,6 +47,8 @@ This has two options that can be set:
 
 ## How To Use
 
+*For those using PyLint version 2, use the `pylint-v2` branch.*
+
 You need to add the directory where you store the [extension](trailing_commas.py) into your `PYTHONPATH` environment variable, and load the plugin with the PyLint execution.
 
 To load it through a command-line argument:

@@ -7,14 +7,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version:
-          - '3.6'
           - '3.8'
+          - '3.10'
 
           # Latest 3.x version
           - '3.x'
 
           - 'pypy-3.8'
-          # May eventually want to include '2.7', but the requirements cause it to fail.
         # exclude:
         #   - os: macos-latest
         #     python-version: '3.8'

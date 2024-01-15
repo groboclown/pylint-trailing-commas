@@ -35,6 +35,7 @@ def test_functional(
     test_file: FunctionalTestFile, recwarn: WarningsRecorder, pytestconfig: Config
 ) -> None:
     __tracebackhide__ = True  # pylint: disable=unused-variable
+    pytestconfig.option.minimal_messages_config = True
     if UPDATE_FILE.exists():
         lint_test: Union[
             LintModuleOutputUpdate, testutils.LintModuleTest
